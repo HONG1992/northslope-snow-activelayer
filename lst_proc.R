@@ -30,7 +30,7 @@ library(raster)
 library(rgeos)
 
 # set up path/directory variables
-dataInDir <- c('
+dataInDir <- c('')
 
 
 
