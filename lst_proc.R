@@ -29,8 +29,32 @@ library(rgdal)
 library(raster)
 library(rgeos)
 
-# set up path/directory variables
-dataInDir <- c('')
+# set up path/directory variables - set for Jeff's computer
+dataBaseDir <- c("~/Desktop/permafrost/Alaska/")
+tifext <- c(".tif")
+
+snowDir <- paste(dataBaseDir,c("GINA/MODISSnowSeasonality/"),sep="")
+activeDir <- paste(dataBaseDir,c("ActiveLayer/CALM_Sites_wData/"),sep="")
+#lstDir <- paste(dataBaseDir,c("Arctic/MODIS_Pan-ARC_Weekly_2007-2013"),sep="")
+lstDir <- paste(dataBaseDir,c("/Pangea/LST_weekly/"),sep="")
+boundDir <- paste(dataBaseDir,c("GINA/AKLCC_boundaries/"),sep="")
+
+# file prefixes
+lstPrf = c("UW_MODAV_LST_1.1.4_001_")
+
+#snowDirIn <- paste(dataBaseDir,snowDir,sep="")
+#activeDirIn <- paste(dataBaseDir,activeDir,sep="")
+
+# set the working directory to the project directory
+setwd("~/Desktop/r_data/NorthSlopeActiveLayer/")
+
+# open the LST files - later do this in a loop
+lstIn <- stack(paste(lstDir,c("2007/"),lstPrf,c("2007.1.1_0.0.0_2007.1.7_23.59.59_001_001"),tifext,sep=""))
+plot(lstIn)
+
+ntSlope <- shapefile(paste(boundDir,c("LCC_Arctic_Alaska_Yukon.shp"),sep=""),stringsAsFactors=FALSE)
+#the active layer data don't seem to plot well 
+activeIn <- shapefile(paste(activeDir,c("CALM_SitesData.shp"),sep=""),stringsAsFactors=FALSE)
 
 
 
