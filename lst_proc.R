@@ -28,6 +28,7 @@ library(sp)
 library(rgdal)
 library(raster)
 library(rgeos)
+library(maptools)
 
 # set up path/directory variables - set for Jeff's computer
 dataBaseDir <- c("~/Desktop/permafrost/Alaska/")
@@ -52,9 +53,32 @@ setwd("~/Desktop/r_data/NorthSlopeActiveLayer/")
 lstIn <- stack(paste(lstDir,c("2007/"),lstPrf,c("2007.1.1_0.0.0_2007.1.7_23.59.59_001_001"),tifext,sep=""))
 plot(lstIn)
 
-ntSlope <- shapefile(paste(boundDir,c("LCC_Arctic_Alaska_Yukon.shp"),sep=""),stringsAsFactors=FALSE)
+#ntSlope <- shapefile(paste(boundDir,c("LCC_Arctic_Alaska_Yukon.shp"),sep=""),stringsAsFactors=FALSE)
+#ntSlope<-readOGR(dsn=paste(boundDir,c("LCC_Arctic_Alaska_Yukon.shp"),sep=""),layer="LCC_Arctic_Alaska_Yukon")
+ntSlope<-readOGR(dsn=path.expand(paste(boundDir,c("LCC_Arctic_Alaska_Yukon.shp"),sep="")),layer="LCC_Arctic_Alaska_Yukon")
+#ntSlope <- readShapeLines(paste(boundDir,c("LCC_Arctic_Alaska_Yukon.shp"),sep=""))
+
+ntSlopeProj <-projection(ntSlope)
 #the active layer data don't seem to plot well 
 activeIn <- shapefile(paste(activeDir,c("CALM_SitesData.shp"),sep=""),stringsAsFactors=FALSE)
+
+activeAK <- spTransform(activeIn,ntSlopeProj)
+activeAKInd <- !is.na(over(activeAK,as(ntSlope, "SpatialPolygons")))
+points(activeIn[activeAKInd])
+
+plot(coordinates(activeAK),type="n")
+plot(ntSlope,border="blue",add=TRUE)
+# now plot active layer sites instide and outside alaska 
+points(activeAK[!activeAKInd, ], pch=1, col="gray")
+points(activeAK[activeAKInd, ], pch=16, col="red")
+
+
+# do some buffering of active layer points
+rad <- 1000
+activeBuff <-buffer(activeAK,width=rad)
+#projection(activeIn)
+
+
 
 
 
