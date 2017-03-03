@@ -51,12 +51,11 @@ setwd("~/Desktop/r_data/NorthSlopeActiveLayer/")
 
 # open the LST files - later do this in a loop
 lstIn <- stack(paste(lstDir,c("2007/"),lstPrf,c("2007.1.1_0.0.0_2007.1.7_23.59.59_001_001"),tifext,sep=""))
-plot(lstIn)
+#plot(lstIn)
 
+# load in shapefiles - two ways of doing this. Second works better for overlay, for some reason
 #ntSlope <- shapefile(paste(boundDir,c("LCC_Arctic_Alaska_Yukon.shp"),sep=""),stringsAsFactors=FALSE)
-#ntSlope<-readOGR(dsn=paste(boundDir,c("LCC_Arctic_Alaska_Yukon.shp"),sep=""),layer="LCC_Arctic_Alaska_Yukon")
 ntSlope<-readOGR(dsn=path.expand(paste(boundDir,c("LCC_Arctic_Alaska_Yukon.shp"),sep="")),layer="LCC_Arctic_Alaska_Yukon")
-#ntSlope <- readShapeLines(paste(boundDir,c("LCC_Arctic_Alaska_Yukon.shp"),sep=""))
 
 ntSlopeProj <-projection(ntSlope)
 #the active layer data don't seem to plot well 
@@ -71,6 +70,12 @@ plot(ntSlope,border="blue",add=TRUE)
 # now plot active layer sites instide and outside alaska 
 points(activeAK[!activeAKInd, ], pch=1, col="gray")
 points(activeAK[activeAKInd, ], pch=16, col="red")
+
+
+
+# there are strange, hidden characters in the data. 
+activeAK$F19 <- as.integer(gsub("\xa0", "", activeAK$F19))
+activeAK$test <- as.integer(gsub("<a0>", "", activeAK$F19))
 
 
 # do some buffering of active layer points
