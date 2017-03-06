@@ -18,7 +18,7 @@
 # CALM annual thaw dept data and locations are from:
 #   http://gtnpdatabase.org/activelayers
 #
-# this code is written by Jeff Thompson, CU Earth Lab
+# this code is written by Jeff Thompson & Ksenia , CU Earth Lab
 #   2017-02-27
 #   
 
@@ -93,6 +93,13 @@ activeAK$F25 <- as.numeric(gsub("<a0>", "", activeAK$F25))
 # substitute 0 for NAs in rows 7:32
 activeAK@data[,7:32][activeAK@data[,7:32] == 0]<-NA
 
+# now that active layer data are cleaned, better write a new shapefile
+writeOGR(activeAK,
+         dsn=path.expand(paste(activeDir,c("CALM_SitesData_Cleaned.shp"),sep="")),
+         "CALM_SitesData_Cleaned", 
+         driver="ESRI Shapefile")
+
+
 # load in snow seasonality data
 #snowIn <-stack(paste(snowDir,"./2001_snowyear_metrics_v7.tif",sep=""))
 
@@ -103,10 +110,13 @@ activeAK@data[,7:32][activeAK@data[,7:32] == 0]<-NA
 #test1[,7:32]<-as.integer(gsub("\xa0", "", test1[,7:32]))
 #test1[,7:32]<-as.integer(gsub("<a0>", "", test1[,7:32]))
 
-# do some buffering of active layer points
+# do some buffering of active layer points 
+#   buffer is in pixels - depends on raster resolution.
+#   LST resolution is 1000 m
 buf <- c(3)
 #nthActiveBuff <-buffer(activeAK[activeAKInd],width=rad)
-nthLstBuff <-extract(lstAK,activeAK@coords[activeAKInd,],buffer=buf,fun=median,na.rm=TRUE)
+#nthLstBuff <-extract(lstAK,activeAK@coords[activeAKInd,],buffer=buf,fun=median,na.rm=TRUE)
+nthLstBuff <-extract(lstAK,activeAK@coords[activeAKInd,],buffer=buf,fun=mean,na.rm=TRUE)
 #projection(activeIn)
 
 
