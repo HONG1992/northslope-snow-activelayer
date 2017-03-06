@@ -37,7 +37,7 @@ tifext <- c(".tif")
 snowDir <- paste(dataBaseDir,c("GINA/MODISSnowSeasonality/"),sep="")
 activeDir <- paste(dataBaseDir,c("ActiveLayer/CALM_Sites_wData/"),sep="")
 #lstDir <- paste(dataBaseDir,c("Arctic/MODIS_Pan-ARC_Weekly_2007-2013"),sep="")
-lstDir <- paste(dataBaseDir,c("/Pangea/LST_weekly/"),sep="")
+lstDir <- paste(dataBaseDir,c("Pangea/LST_weekly/"),sep="")
 boundDir <- paste(dataBaseDir,c("GINA/AKLCC_boundaries/"),sep="")
 
 # file prefixes
@@ -53,34 +53,60 @@ setwd("~/Desktop/r_data/NorthSlopeActiveLayer/")
 lstIn <- stack(paste(lstDir,c("2007/"),lstPrf,c("2007.1.1_0.0.0_2007.1.7_23.59.59_001_001"),tifext,sep=""))
 #plot(lstIn)
 
-# load in shapefiles - two ways of doing this. Second works better for overlay, for some reason
+# load in north slope boundary shapefile - two ways of doing this. Second works better for overlay, for some reason
 #ntSlope <- shapefile(paste(boundDir,c("LCC_Arctic_Alaska_Yukon.shp"),sep=""),stringsAsFactors=FALSE)
 ntSlope<-readOGR(dsn=path.expand(paste(boundDir,c("LCC_Arctic_Alaska_Yukon.shp"),sep="")),layer="LCC_Arctic_Alaska_Yukon")
 
-ntSlopeProj <-projection(ntSlope)
-#the active layer data don't seem to plot well 
+#load activelayer point data - not sure why the readOGR fails for this one :(
 activeIn <- shapefile(paste(activeDir,c("CALM_SitesData.shp"),sep=""),stringsAsFactors=FALSE)
+#activeIn<-readOGR(dsn=path.expand(paste(activeDir,c("CALM_SitesData.shp"),sep="")),layer="CALM_SitesData.shp")
 
+#need to reproject the active layer data to the north slope projection
+ntSlopeProj <-projection(ntSlope)
 activeAK <- spTransform(activeIn,ntSlopeProj)
-activeAKInd <- !is.na(over(activeAK,as(ntSlope, "SpatialPolygons")))
-points(activeIn[activeAKInd])
 
+# reproject the lst data
+lstAK <- projectRaster(lstIn,crs=ntSlopeProj)
+
+# find indexes of points that are contained by the ntSlope boundary
+activeAKInd <- !is.na(over(activeAK,as(ntSlope, "SpatialPolygons")))
+
+# plot these as a simple map to see how things look.
+#   points contained by shape file are in red, else grey cicles
+#points(activeIn[activeAKInd])
 plot(coordinates(activeAK),type="n")
 plot(ntSlope,border="blue",add=TRUE)
 # now plot active layer sites instide and outside alaska 
 points(activeAK[!activeAKInd, ], pch=1, col="gray")
 points(activeAK[activeAKInd, ], pch=16, col="red")
 
+# turns out there are there are strange, hidden characters in the active layer data.
+#   these data need to be cleaned
+# View(activeAK) # to see whole attribute table
+activeAK$F7 <- as.numeric(gsub("\xa0", "", activeAK$F7))
+activeAK$F7 <- as.numeric(gsub("<a0>", "", activeAK$F7))
+activeAK$F19 <- as.numeric(gsub("\xa0", "", activeAK$F19))
+activeAK$F19 <- as.numeric(gsub("<a0>", "", activeAK$F19))
+activeAK$F25 <- as.numeric(gsub("\xa0", "", activeAK$F25))
+activeAK$F25 <- as.numeric(gsub("<a0>", "", activeAK$F25))
+
+# substitute 0 for NAs in rows 7:32
+activeAK@data[,7:32][activeAK@data[,7:32] == 0]<-NA
+
+# load in snow seasonality data
+#snowIn <-stack(paste(snowDir,"./2001_snowyear_metrics_v7.tif",sep=""))
 
 
-# there are strange, hidden characters in the data. 
-activeAK$F19 <- as.integer(gsub("\xa0", "", activeAK$F19))
-activeAK$test <- as.integer(gsub("<a0>", "", activeAK$F19))
-
+# testing of using gsub on a slice of attribute table 
+#   appears not to work
+#test1<-activeAK
+#test1[,7:32]<-as.integer(gsub("\xa0", "", test1[,7:32]))
+#test1[,7:32]<-as.integer(gsub("<a0>", "", test1[,7:32]))
 
 # do some buffering of active layer points
-rad <- 1000
-activeBuff <-buffer(activeAK,width=rad)
+buf <- c(3)
+#nthActiveBuff <-buffer(activeAK[activeAKInd],width=rad)
+nthLstBuff <-extract(lstAK,activeAK@coords[activeAKInd,],buffer=buf,fun=median,na.rm=TRUE)
 #projection(activeIn)
 
 
