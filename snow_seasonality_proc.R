@@ -1,12 +1,5 @@
 # opening the modis data files
 
-#####Do I need this?
-#library(rhdf5)
-#hdf_files <- list.files('~/Downloads/', pattern = '.h5')
-#setwd("~")
-#file <- file.path("Downloads", hdf_files)
-#####
-
 library(sp)
 library(rgdal)
 library(raster)
