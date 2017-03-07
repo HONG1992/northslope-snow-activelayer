@@ -130,3 +130,8 @@ for (i in 1:length(fileNames))
   #check if it did anything
   show(i)
 }
+setwd("~/Desktop/modis_data/MODISSnowSeasonality/New/dataFrames/")
+write.csv(fsSnow, file = "fsSnow.csv")
+write.csv(lsSnow, file = "lsSnow.csv")
+write.csv(fsSnowCont, file = "fsSnowCont.csv")
+write.csv(lsSnowCont, file = "lsSnowCont.csv")
