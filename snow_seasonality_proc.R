@@ -225,6 +225,8 @@ points(activeAK[activeAKInd, ], pch=16, col="red")
 activeAK$F19 <- as.integer(gsub("\xa0", "", activeAK$F19))
 activeAK$test <- as.integer(gsub("<a0>", "", activeAK$F19))
 
+setwd("~/Desktop/modis_data/MODISSnowSeasonality/New/dataFrames/")
+write.csv(ALDataFrame, file = "ALData.csv")
 
 
 #-------------------------------------------------------------------------------------------------------------
@@ -300,4 +302,149 @@ for (i in 1:length(fileNames)){
     lsSnowAtLoc[,i] = c(snowAtLocLFS)
     fsSnowContAtLoc[,i] = c(snowAtLocFCS)
     lsSnowContAtLoc[,i] = c(snowAtLocLCS)
+}
+
+setwd("~/Desktop/modis_data/MODISSnowSeasonality/New/dataFrames/")
+write.csv(fsSnowAtLoc, file = "fsSnowAtLoc.csv")
+write.csv(lsSnowAtLoc, file = "lsSnowAtLoc.csv")
+write.csv(fsSnowContAtLoc, file = "fsSnowContAtLoc.csv")
+write.csv(lsSnowContAtLoc, file = "lsSnowContAtLoc.csv")
+
+
+#-------------------------------------------------------------------------------------------------------------
+#Find dates of snow free period 2 ways
+#Earth Lab - Project Permafrost
+#By: Ksenia Lepikhina and Jeffery Thompson (mentor)
+#Copy Right
+
+#Dataframe for snow free data (full season) -> Snow Year
+FULLSnowFreeSY = data.frame("2001"=rep(0, 42), "2002"=rep(0,42), "2003"=rep(0,42), "2004"=rep(0,42),
+                         "2005"=rep(0,42), "2006"=rep(0,42), "2007"=rep(0,42), "2008"=rep(0,42),
+                         "2009"=rep(0,42), "2010"=rep(0,42), "2011"=rep(0,42), "2012"=rep(0,42),
+                         "2013"=rep(0,42),"2014"=rep(0,42), "2015"=rep(0,42), "2016"=rep(0,42));
+colnames(FULLSnowFreeSY) <- c("2001", "2002", "2003", "2004",
+                           "2005", "2006", "2007", "2008",
+                           "2009", "2010", "2011", "2012",
+                           "2013","2014", "2015", "2016")
+row.names(FULLSnowFreeSY) <-c(activeAK@data$Site_Name[activeAKInd == TRUE])
+
+#Dataframe for snow free data (continuous season) -> Snow Year
+CONTSnowFreeSY = data.frame("2001"=rep(0, 42), "2002"=rep(0,42), "2003"=rep(0,42), "2004"=rep(0,42),
+                         "2005"=rep(0,42), "2006"=rep(0,42), "2007"=rep(0,42), "2008"=rep(0,42),
+                         "2009"=rep(0,42), "2010"=rep(0,42), "2011"=rep(0,42), "2012"=rep(0,42),
+                         "2013"=rep(0,42),"2014"=rep(0,42), "2015"=rep(0,42), "2016"=rep(0,42));
+colnames(CONTSnowFreeSY) <- c("2001", "2002", "2003", "2004",
+                           "2005", "2006", "2007", "2008",
+                           "2009", "2010", "2011", "2012",
+                           "2013","2014", "2015", "2016")
+row.names(CONTSnowFreeSY) <-c(activeAK@data$Site_Name[activeAKInd == TRUE])
+
+#Dataframe for snow free data (full season) -> Calendar Year
+FULLSnowFreeCY = data.frame("2002"=rep(0,42), "2003"=rep(0,42), "2004"=rep(0,42),
+                            "2005"=rep(0,42), "2006"=rep(0,42), "2007"=rep(0,42), "2008"=rep(0,42),
+                            "2009"=rep(0,42), "2010"=rep(0,42), "2011"=rep(0,42), "2012"=rep(0,42),
+                            "2013"=rep(0,42),"2014"=rep(0,42), "2015"=rep(0,42), "2016"=rep(0,42));
+colnames(FULLSnowFreeCY) <- c("2002", "2003", "2004",
+                              "2005", "2006", "2007", "2008",
+                              "2009", "2010", "2011", "2012",
+                              "2013","2014", "2015", "2016")
+row.names(FULLSnowFreeCY) <-c(activeAK@data$Site_Name[activeAKInd == TRUE])
+
+#Dataframe for snow free data (continuous season) -> Calendar Year
+CONTSnowFreeCY = data.frame("2002"=rep(0,42), "2003"=rep(0,42), "2004"=rep(0,42),
+                            "2005"=rep(0,42), "2006"=rep(0,42), "2007"=rep(0,42), "2008"=rep(0,42),
+                            "2009"=rep(0,42), "2010"=rep(0,42), "2011"=rep(0,42), "2012"=rep(0,42),
+                            "2013"=rep(0,42),"2014"=rep(0,42), "2015"=rep(0,42), "2016"=rep(0,42));
+colnames(CONTSnowFreeCY) <- c("2002", "2003", "2004",
+                              "2005", "2006", "2007", "2008",
+                              "2009", "2010", "2011", "2012",
+                              "2013","2014", "2015", "2016")
+row.names(CONTSnowFreeCY) <-c(activeAK@data$Site_Name[activeAKInd == TRUE])
+
+#Snow Year Analysis FULL
+dSFP <- vector("numeric", 42L)
+for (i in 1:16)
+{
+  for (j in 1:42)
+  {
+    k <- 365 -(lsSnowAtLoc[j,i]-fsSnowAtLoc[j,i])
+    dSFP[j] <- k
+  }
+  FULLSnowFreeSY[,i] = c(dSFP)
+}
+
+#Snow Year Analysis CONTINUOUS
+dSFP2 <- vector("numeric", 42L)
+for (i in 1:16)
+{
+  for (j in 1:42)
+  {
+    k <- 365 -(lsSnowContAtLoc[j,i]-fsSnowContAtLoc[j,i])
+    dSFP2[j] <- k
+  }
+  CONTSnowFreeSY[,i] = c(dSFP2)
+}
+
+#Calendar Year Analysis FULL
+dSFP3 <- vector("numeric", 42L)
+for (i in 1:15)
+{
+  for (j in 1:42)
+  {
+    if (is.na(fsSnowAtLoc[j,i+1]) || is.na(lsSnowAtLoc[j,i]))
+    {
+      dSFP3[j] <- NA
+    }
+    else if (fsSnowAtLoc[j,i+1] < 365 && lsSnowAtLoc[j,i] > 365)
+    {
+      k <- fsSnowAtLoc[j,i+1] - (lsSnowAtLoc[j,i] -365)
+      dSFP3[j] <- k
+    }
+    else if (fsSnowAtLoc[j,i+1] < 365 && lsSnowAtLoc[j,i] < 365)
+    {
+      dSFP3[j] <- fsSnowAtLoc[j,i+1] 
+    }
+    else if (fsSnowAtLoc[j,i+1] > 365 && lsSnowAtLoc[j,i] > 365)
+    {
+      k <- 365 - (lsSnowAtLoc[j,i] -365)
+      dSFP3[j] <- k
+    }
+    else if (fsSnowAtLoc[j,i+1] > 365 && lsSnowAtLoc[j,i] < 365)
+    {
+      dSFP3[j] <- 365
+    }
+  }
+  FULLSnowFreeCY[,i] = c(dSFP3)
+}
+
+#Calendar Year Analysis CONTINUOUS
+dSFP4 <- vector("numeric", 42L)
+for (i in 1:15)
+{
+  for (j in 1:42)
+  {
+    if (is.na(fsSnowContAtLoc[j,i+1]) || is.na(lsSnowContAtLoc[j,i]))
+    {
+      dSFP4[j] <- NA
+    }
+    else if (fsSnowContAtLoc[j,i+1] < 365 && lsSnowContAtLoc[j,i] > 365)
+    {
+      k <- fsSnowContAtLoc[j,i+1] - (lsSnowContAtLoc[j,i] -365)
+      dSFP4[j] <- k
+    }
+    else if (fsSnowContAtLoc[j,i+1] < 365 && lsSnowContAtLoc[j,i] < 365)
+    {
+      dSFP4[j] <- fsSnowContAtLoc[j,i+1] 
+    }
+    else if (fsSnowContAtLoc[j,i+1] > 365 && lsSnowContAtLoc[j,i] > 365)
+    {
+      k <- 365 - (lsSnowContAtLoc[j,i] -365)
+      dSFP4[j] <- k
+    }
+    else if (fsSnowAtLoc[j,i+1] > 365 && lsSnowContAtLoc[j,i] < 365)
+    {
+      dSFP4[j] <- 365
+    }
+  }
+  CONTSnowFreeCY[,i] = c(dSFP4)
 }
