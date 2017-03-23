@@ -168,53 +168,57 @@ activeAK <- spTransform(activeIn,ntSlopeProj)
 activeAKInd <- !is.na(over(activeAK,as(NS, "SpatialPolygons")))
 
 #Plot the North Slope
-plot(coordinates(activeAK),type="n")
-plot(NS,border="blue",add=TRUE)
+#plot(coordinates(activeAK),type="n")
+#plot(NS,border="blue",add=TRUE)
 
 #Create dataframe that has permafrost data for North Slope
-ALDataFrame = data.frame("SiteCode"=rep(0, 41),"SiteName"=rep(0, 41),"Latitude"=rep(0, 41),"Longitude"=rep(0, 41),
-                         "1990"=rep(0, 41),"1991"=rep(0, 41),"1992"=rep(0, 41),"1993"=rep(0, 41),"1994"=rep(0, 41),
-                         "1995"=rep(0, 41),"1996"=rep(0, 41),"1997"=rep(0, 41),"1998"=rep(0, 41),"1999"=rep(0, 41),
-                         "2000"=rep(0, 41),"2001"=rep(0, 41), "2002"=rep(0,41), "2003"=rep(0,41), "2004"=rep(0,41),
-                         "2005"=rep(0,41), "2006"=rep(0,41), "2007"=rep(0,41), "2008"=rep(0,41), "2009"=rep(0,41),
-                         "2010"=rep(0,41),"2011"=rep(0,41), "2012"=rep(0,41), "2013"=rep(0,41), "2014"=rep(0,41),
-                         "2015"=rep(0,41), "test"=rep(0,41));
+ALDataFrame = data.frame("SiteCode"=rep(0, 42),"SiteName"=rep(0, 42),"Latitude"=rep(0, 42),"Longitude"=rep(0, 42),
+                         "1990"=rep(0, 42),"1991"=rep(0, 42),"1992"=rep(0, 42),"1993"=rep(0, 42),"1994"=rep(0, 42),
+                         "1995"=rep(0, 42),"1996"=rep(0, 42),"1997"=rep(0, 42),"1998"=rep(0, 42),"1999"=rep(0, 42),
+                         "2000"=rep(0, 42),"2001"=rep(0, 42), "2002"=rep(0,42), "2003"=rep(0,42), "2004"=rep(0,42),
+                         "2005"=rep(0,42), "2006"=rep(0,42), "2007"=rep(0,42), "2008"=rep(0,42), "2009"=rep(0,42),
+                         "2010"=rep(0,42),"2011"=rep(0,42), "2012"=rep(0,42), "2013"=rep(0,42), "2014"=rep(0,42),
+                         "2015"=rep(0,42), "2016"=rep(0,42));
 colnames(ALDataFrame)<-c("SiteCode","SiteName","Latitude","Longitude","1990","1991","1992","1993","1994","1995",
                          "1996","1997","1998","1999","2000","2001","2002","2003","2004","2005","2006",
-                         "2007","2008","2009","2010","2011","2012","2013","2014","2015","test")
+                         "2007","2008","2009","2010","2011","2012","2013","2014","2015","2016")
 
 #populate dataframe
-ALDataFrame[,1] = c("SiteCode" = activeAK@data$Site_Code[1:41])
-ALDataFrame[,2] = c("SiteCode" = activeAK@data$Site_Name[1:41])
-ALDataFrame[,3] = c("SiteCode" = activeAK@data$Latitude[1:41])
-ALDataFrame[,4] = c("SiteCode" = activeAK@data$Longitude[1:41])
-ALDataFrame[,5] = c("SiteCode" = activeAK@data$F7[1:41])
-ALDataFrame[,6] = c("SiteCode" = activeAK@data$F8[1:41])
-ALDataFrame[,7] = c("SiteCode" = activeAK@data$F9[1:41])
-ALDataFrame[,8] = c("SiteCode" = activeAK@data$F10[1:41])
-ALDataFrame[,9] = c("SiteCode" = activeAK@data$F11[1:41])
-ALDataFrame[,10] = c("SiteCode" = activeAK@data$F12[1:41])
-ALDataFrame[,11] = c("SiteCode" = activeAK@data$F13[1:41])
-ALDataFrame[,12] = c("SiteCode" = activeAK@data$F14[1:41])
-ALDataFrame[,13] = c("SiteCode" = activeAK@data$F15[1:41])
-ALDataFrame[,14] = c("SiteCode" = activeAK@data$F16[1:41])
-ALDataFrame[,15] = c("SiteCode" = activeAK@data$F17[1:41])
-ALDataFrame[,16] = c("SiteCode" = activeAK@data$F18[1:41])
-ALDataFrame[,17] = c("SiteCode" = activeAK@data$F19[1:41])
-ALDataFrame[,18] = c("SiteCode" = activeAK@data$F20[1:41])
-ALDataFrame[,19] = c("SiteCode" = activeAK@data$F21[1:41])
-ALDataFrame[,20] = c("SiteCode" = activeAK@data$F22[1:41])
-ALDataFrame[,21] = c("SiteCode" = activeAK@data$F23[1:41])
-ALDataFrame[,22] = c("SiteCode" = activeAK@data$F24[1:41])
-ALDataFrame[,23] = c("SiteCode" = activeAK@data$F25[1:41])
-ALDataFrame[,24] = c("SiteCode" = activeAK@data$F26[1:41])
-ALDataFrame[,25] = c("SiteCode" = activeAK@data$F27[1:41])
-ALDataFrame[,26] = c("SiteCode" = activeAK@data$F28[1:41])
-ALDataFrame[,27] = c("SiteCode" = activeAK@data$F29[1:41])
-ALDataFrame[,28] = c("SiteCode" = activeAK@data$F30[1:41])
-ALDataFrame[,29] = c("SiteCode" = activeAK@data$F31[1:41])
-ALDataFrame[,30] = c("SiteCode" = activeAK@data$F32[1:41])
-ALDataFrame[,31] = c("SiteCode" = activeAK@data$test[1:41])
+
+ALDataFrame[,1:4] <- activeAK@data[activeAKInd,1:4]
+ALDataFrame[,5:31] <- activeAK@data[activeAKInd,7:33]
+
+# ALDataFrame[,1] = c("SiteCode" = activeAK@data$Site_Code[1:41])
+# ALDataFrame[,2] = c("SiteCode" = activeAK@data$Site_Name[1:41])
+# ALDataFrame[,3] = c("SiteCode" = activeAK@data$Latitude[1:41])
+# ALDataFrame[,4] = c("SiteCode" = activeAK@data$Longitude[1:41])
+# ALDataFrame[,5] = c("SiteCode" = activeAK@data$F7[1:41])
+# ALDataFrame[,6] = c("SiteCode" = activeAK@data$F8[1:41])
+# ALDataFrame[,7] = c("SiteCode" = activeAK@data$F9[1:41])
+# ALDataFrame[,8] = c("SiteCode" = activeAK@data$F10[1:41])
+# ALDataFrame[,9] = c("SiteCode" = activeAK@data$F11[1:41])
+# ALDataFrame[,10] = c("SiteCode" = activeAK@data$F12[1:41])
+# ALDataFrame[,11] = c("SiteCode" = activeAK@data$F13[1:41])
+# ALDataFrame[,12] = c("SiteCode" = activeAK@data$F14[1:41])
+# ALDataFrame[,13] = c("SiteCode" = activeAK@data$F15[1:41])
+# ALDataFrame[,14] = c("SiteCode" = activeAK@data$F16[1:41])
+# ALDataFrame[,15] = c("SiteCode" = activeAK@data$F17[1:41])
+# ALDataFrame[,16] = c("SiteCode" = activeAK@data$F18[1:41])
+# ALDataFrame[,17] = c("SiteCode" = activeAK@data$F19[1:41])
+# ALDataFrame[,18] = c("SiteCode" = activeAK@data$F20[1:41])
+# ALDataFrame[,19] = c("SiteCode" = activeAK@data$F21[1:41])
+# ALDataFrame[,20] = c("SiteCode" = activeAK@data$F22[1:41])
+# ALDataFrame[,21] = c("SiteCode" = activeAK@data$F23[1:41])
+# ALDataFrame[,22] = c("SiteCode" = activeAK@data$F24[1:41])
+# ALDataFrame[,23] = c("SiteCode" = activeAK@data$F25[1:41])
+# ALDataFrame[,24] = c("SiteCode" = activeAK@data$F26[1:41])
+# ALDataFrame[,25] = c("SiteCode" = activeAK@data$F27[1:41])
+# ALDataFrame[,26] = c("SiteCode" = activeAK@data$F28[1:41])
+# ALDataFrame[,27] = c("SiteCode" = activeAK@data$F29[1:41])
+# ALDataFrame[,28] = c("SiteCode" = activeAK@data$F30[1:41])
+# ALDataFrame[,29] = c("SiteCode" = activeAK@data$F31[1:41])
+# ALDataFrame[,30] = c("SiteCode" = activeAK@data$F32[1:41])
+# ALDataFrame[,31] = c("SiteCode" = activeAK@data$test[1:41])
 
 
 # now plot active layer sites instide and outside alaska 
@@ -448,3 +452,68 @@ for (i in 1:15)
   }
   CONTSnowFreeCY[,i] = c(dSFP4)
 }
+#------------------------------------------------------------------------------------
+#Merging the dataframes
+#Earth Lab - Project Permafrost
+#By: Ksenia Lepikhina and Jeffery Thompson (mentor)
+#Copy Right
+
+n <- 630
+totalsData <- data.frame("SiteName"=rep(0,n), "Year"=rep(0,n), "ActiveLayer"=rep(0,n),
+                         "CFullSnow"=rep(0,n), "CContSnow"=rep(0,n),
+                         "SFullSnow"=rep(0,n), "SContSnow"=rep(0,n));
+colnames(totalsData) <- c("SiteName","Year","ActiveLayer","FULLSnowFreeCY", "CONTSnowFreeCY",
+                          "FULLSnowFreeSY", "CONTSnowFreeSY")
+#row.names(CONTSnowFreeCY) <-c(activeAK@data$Site_Name[activeAKInd == TRUE])
+
+for (i in 1:15)
+{
+  a <- 1+(42*(i-1))
+  b <- 42+(42*(i-1))
+  #Site Names
+  totalsData[a:b,1] <- ALDataFrame[1:42,2]
+  #Years
+  totalsData[a:b,2] <- i+2001
+  #Active Layer Depth
+  totalsData[a:b,3] <- ALDataFrame[1:42, i+16]
+  #C Full Snow
+  totalsData[a:b,4] <- FULLSnowFreeCY[1:42,i]
+  #C Cont Snow
+  totalsData[a:b,5] <- CONTSnowFreeCY[1:42,i]
+  #S Full Snow
+  totalsData[a:b,6] <- FULLSnowFreeSY[1:42,i+1]
+  #S Cont Snow
+  totalsData[a:b,7] <- CONTSnowFreeSY[1:42,i+1]
+}
+
+totalsData[,3:7][totalsData[,3:7] == 0] <- NA
+
+boxplot(ActiveLayer ~ Year, data=totalsData,main="Active Layer Depths by Year")
+boxplot(CONTSnowFreeSY ~ Year, data=totalsData,main="Continous Snow Free Period - Snow Year")
+boxplot(CONTSnowFreeCY ~ Year, data=totalsData,main="Continous Snow Free Period - Cal. Year")
+boxplot(FULLSnowFreeSY ~ Year, data=totalsData,main="Full Snow Free Period - Snow Year")
+boxplot(FULLSnowFreeCY ~ Year, data=totalsData,main="Full Snow Free Period - Cal. Year")
+
+contSnowFreeSnowYearInd <- totalsData$CONTSnowFreeSY >0
+plot(totalsData[contSnowFreeSnowYearInd,7],totalsData[contSnowFreeSnowYearInd,3],title="Cont. SFP - Snow Year vs ALD")
+contSnowFreeSYReg <- lm(totalsData[contSnowFreeSnowYearInd,3] ~totalsData[contSnowFreeSnowYearInd,7])
+abline(contSnowFreeSYReg)
+
+#contSnowFreeSYReg <- lm(ActiveLayer ~ CONTSnowFreeSY, data=totalsData)
+summary(contSnowFreeSYReg)
+plot(contSnowFreeSYReg)
+
+
+plot(totalsData$CONTSnowFreeSY,totalsData$ActiveLayer)
+abline(contSnowFreeSYReg)
+
+
+#fullSnowFreeSYReg <- lm(ActiveLayer ~ FULLSnowFreeSY, data=totalsData)
+fullSnowFreeSnowYearInd <-totalsData$FULLSnowFreeSY <300
+plot(totalsData[fullSnowFreeSnowYearInd,6],totalsData[fullSnowFreeSnowYearInd,3],title="Full SFP Snow Year vs Active Layer")
+fullSnowFreeSYReg <- lm(totalsData[fullSnowFreeSnowYearInd,3] ~ totalsData[fullSnowFreeSnowYearInd,6])
+abline(fullSnowFreeSYReg)
+summary(fullSnowFreeSYReg)
+
+#k1<- corr(colbind(totalsData$CONTSnowFreeSY,totalsData$`Active Layer`))
+
