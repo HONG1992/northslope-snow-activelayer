@@ -7,6 +7,7 @@ library(sp)
 library(rgdal)
 library(raster)
 library(rgeos)
+library(ggplot2)
 
 #open folder
 setwd("~/Desktop/modis_data/MODISSnowSeasonality")
@@ -187,38 +188,6 @@ colnames(ALDataFrame)<-c("SiteCode","SiteName","Latitude","Longitude","1990","19
 
 ALDataFrame[,1:4] <- activeAK@data[activeAKInd,1:4]
 ALDataFrame[,5:31] <- activeAK@data[activeAKInd,7:33]
-
-# ALDataFrame[,1] = c("SiteCode" = activeAK@data$Site_Code[1:41])
-# ALDataFrame[,2] = c("SiteCode" = activeAK@data$Site_Name[1:41])
-# ALDataFrame[,3] = c("SiteCode" = activeAK@data$Latitude[1:41])
-# ALDataFrame[,4] = c("SiteCode" = activeAK@data$Longitude[1:41])
-# ALDataFrame[,5] = c("SiteCode" = activeAK@data$F7[1:41])
-# ALDataFrame[,6] = c("SiteCode" = activeAK@data$F8[1:41])
-# ALDataFrame[,7] = c("SiteCode" = activeAK@data$F9[1:41])
-# ALDataFrame[,8] = c("SiteCode" = activeAK@data$F10[1:41])
-# ALDataFrame[,9] = c("SiteCode" = activeAK@data$F11[1:41])
-# ALDataFrame[,10] = c("SiteCode" = activeAK@data$F12[1:41])
-# ALDataFrame[,11] = c("SiteCode" = activeAK@data$F13[1:41])
-# ALDataFrame[,12] = c("SiteCode" = activeAK@data$F14[1:41])
-# ALDataFrame[,13] = c("SiteCode" = activeAK@data$F15[1:41])
-# ALDataFrame[,14] = c("SiteCode" = activeAK@data$F16[1:41])
-# ALDataFrame[,15] = c("SiteCode" = activeAK@data$F17[1:41])
-# ALDataFrame[,16] = c("SiteCode" = activeAK@data$F18[1:41])
-# ALDataFrame[,17] = c("SiteCode" = activeAK@data$F19[1:41])
-# ALDataFrame[,18] = c("SiteCode" = activeAK@data$F20[1:41])
-# ALDataFrame[,19] = c("SiteCode" = activeAK@data$F21[1:41])
-# ALDataFrame[,20] = c("SiteCode" = activeAK@data$F22[1:41])
-# ALDataFrame[,21] = c("SiteCode" = activeAK@data$F23[1:41])
-# ALDataFrame[,22] = c("SiteCode" = activeAK@data$F24[1:41])
-# ALDataFrame[,23] = c("SiteCode" = activeAK@data$F25[1:41])
-# ALDataFrame[,24] = c("SiteCode" = activeAK@data$F26[1:41])
-# ALDataFrame[,25] = c("SiteCode" = activeAK@data$F27[1:41])
-# ALDataFrame[,26] = c("SiteCode" = activeAK@data$F28[1:41])
-# ALDataFrame[,27] = c("SiteCode" = activeAK@data$F29[1:41])
-# ALDataFrame[,28] = c("SiteCode" = activeAK@data$F30[1:41])
-# ALDataFrame[,29] = c("SiteCode" = activeAK@data$F31[1:41])
-# ALDataFrame[,30] = c("SiteCode" = activeAK@data$F32[1:41])
-# ALDataFrame[,31] = c("SiteCode" = activeAK@data$test[1:41])
 
 
 # now plot active layer sites instide and outside alaska 
@@ -510,10 +479,39 @@ abline(contSnowFreeSYReg)
 
 #fullSnowFreeSYReg <- lm(ActiveLayer ~ FULLSnowFreeSY, data=totalsData)
 fullSnowFreeSnowYearInd <-totalsData$FULLSnowFreeSY <300
-plot(totalsData[fullSnowFreeSnowYearInd,6],totalsData[fullSnowFreeSnowYearInd,3],title="Full SFP Snow Year vs Active Layer")
+
+#checking if there is any correlation between years - FULL Snow Year
+par(mar=c(4.1, 4.1, 4.1, 8.1), xpd=TRUE)
+plot(totalsData[fullSnowFreeSnowYearInd,6],totalsData[fullSnowFreeSnowYearInd,3],
+     pch = c(0,1,2,5,6,15,16,17,18,19,20,21,22,23,24),bg = c(
+                                                            "red","red","red","red"))
+legend('topright', inset=c(-0.2,0),names(FULLSnowFreeSY[2:16]), 
+       pch=c(0,1,2,5,6,15,16,17,18,19,20,21,22,23,24), pt.bg=c("red","red","red","red"), bty='n', cex=.75)
 fullSnowFreeSYReg <- lm(totalsData[fullSnowFreeSnowYearInd,3] ~ totalsData[fullSnowFreeSnowYearInd,6])
 abline(fullSnowFreeSYReg)
 summary(fullSnowFreeSYReg)
+
+#checking if there is any correlation between locations - FULL Snow Year
+par(mar=c(4.1, 4.1, 4.1, 8.1), xpd=TRUE)
+myshapes <- c(21,22,23,24,21,22,23,24,21,22,23,24,
+              21,22,23,24,21,22,23,24,21,22,23,24,
+              21,22,23,24,21,22,23,24,21,22,23,24,
+              21,22,23,24,21,22)
+mycolors <- c("red","red","red","red",
+              "green","green","green","green",
+              "red","orange","green","blue",
+              "blue","blue","blue","blue",
+              "cyan","cyan","cyan","cyan",
+              "black","black","black","black",
+              "grey","grey","grey","grey",
+              "yellow","yellow","yellow","yellow",
+              "pink","pink","pink","pink",
+              "darkgreen","darkgreen","darkgreen","darkgreen",
+              "white","white")
+myplot <- with(FULLSnowFreeSY,plot(totalsData[fullSnowFreeSnowYearInd,6], totalsData[fullSnowFreeSnowYearInd,3],
+                         pch=myshapes[col(FULLSnowFreeSY)],bg=mycolors[row(FULLSnowFreeSY)]))
+legend(185,75, inset=c(-0.1,0),ALDataFrame$SiteName, 
+       pch= myshapes, pt.bg = mycolors,bty='n', cex=.45, ncol=2)
 
 #k1<- corr(colbind(totalsData$CONTSnowFreeSY,totalsData$`Active Layer`))
 
