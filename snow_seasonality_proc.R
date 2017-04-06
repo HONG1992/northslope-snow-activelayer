@@ -492,32 +492,6 @@ fullSnowFreeSYReg <- lm(totalsData[fullSnowFreeSnowYearInd,3] ~ totalsData[fullS
 abline(fullSnowFreeSYReg)
 summary(fullSnowFreeSYReg)
 
-#checking if there is any correlation between locations - FULL Snow Year
-par(mar=c(4.1, 4.1, 4.1, 8.1), xpd=TRUE)
-myshapes <- c(21,22,23,24,21,22,23,24,21,22,23,24,
-              21,22,23,24,21,22,23,24,21,22,23,24,
-              21,22,23,24,21,22,23,24,21,22,23,24,
-              21,22,23,24,21,22)
-mycolors <- c("red","red","red","red",
-              "green","green","green","green",
-              "red","orange","green","blue",
-              "blue","blue","blue","blue",
-              "cyan","cyan","cyan","cyan",
-              "black","black","black","black",
-              "grey","grey","grey","grey",
-              "yellow","yellow","yellow","yellow",
-              "pink","pink","pink","pink",
-              "darkgreen","darkgreen","darkgreen","darkgreen",
-              "white","white")
-with(FULLSnowFreeSY,plot(totalsData[fullSnowFreeSnowYearInd,6], totalsData[fullSnowFreeSnowYearInd,3],
-                         pch=myshapes[col(FULLSnowFreeSY)],bg=mycolors[row(FULLSnowFreeSY)]))
-legend(185,75, inset=c(-0.1,0),ALDataFrame$SiteName, 
-       pch= myshapes, pt.bg = mycolors,bty='n', cex=.45, ncol=2)
-qplot(totalsData[fullSnowFreeSnowYearInd,6], totalsData[fullSnowFreeSnowYearInd,3], colour = 'color', geom = 'bin2d')
-#k1<- corr(colbind(totalsData$CONTSnowFreeSY,totalsData$`Active Layer`))
-
-
-
 #Looking at individual years -FULL Snow Year
   fullSnowFreeSnowYearInd <- totalsData$FULLSnowFreeSY<300 #& 100<totalsData$FULLSnowFreeSY[1:42,1]
   for (i in 2:16)
@@ -532,21 +506,60 @@ qplot(totalsData[fullSnowFreeSnowYearInd,6], totalsData[fullSnowFreeSnowYearInd,
     abline(fullSnowFreeSYReg)
     #summary(fullSnowFreeSYReg)
   }
+ 
   
-#Looking at individual locations - FULL Snow Year -NEEDS FIX
+  #checking if there is any correlation between locations - FULL Snow Year
+  fullSnowFreeSnowYearInd <- totalsData$FULLSnowFreeSY<300 #& 67<totalsData$FULLSnowFreeSY
+  par(mar=c(4.1, 4.1, 4.1, 8.1), xpd=TRUE)
+  myshapes <- c(21,22,23,24)#,21,22,23,24,21,22,23,24,
+                #21,22,23,24,21,22,23,24,21,22,23,24,
+                #21,22,23,24,21,22,23,24,21,22,23,24,
+                #21,22,23,24,21,22)
+  mycolors <- c("red","red","red","red",
+                "green","green","green","green",
+                "orange","orange","orange","orange",
+                "blue","blue","blue","blue",
+                "cyan","cyan","cyan","cyan",
+                "black","black","black","black",
+                "grey","grey","grey","grey",
+                "yellow","yellow","yellow","yellow",
+                "pink","pink","pink","pink",
+                "darkgreen","darkgreen","darkgreen","darkgreen",
+                "white","white")
+  #with(FULLSnowFreeSY,plot(totalsData[fullSnowFreeSnowYearInd,6], totalsData[fullSnowFreeSnowYearInd,3],
+                           #pch=myshapes[row(FULLSnowFreeSY)],bg=mycolors[row(FULLSnowFreeSY)]))
+ # for (i in 1:15){
+#    a <- 1+(42*(i-1))
+#    b <- 42+(42*(i-1))
+    # plot(totalsData[fullSnowFreeSnowYearInd,6], totalsData[fullSnowFreeSnowYearInd,3],
+    #      pch=myshapes[row(totalsData)[1:42]],bg=mycolors[row(totalsData)[1:42]])
+  plot(totalsData[fullSnowFreeSnowYearInd,6], totalsData[fullSnowFreeSnowYearInd,3],
+       pch=myshapes,bg=mycolors)
+    legend(185,75, inset=c(-0.1,0),totalsData$SiteName[1:42], 
+           pch= myshapes, pt.bg = mycolors,bty='n', cex=.45, ncol=2)
+    #qplot(totalsData[fullSnowFreeSnowYearInd,6], totalsData[fullSnowFreeSnowYearInd,3], colour = 'color', geom = 'bin2d')
+    #k1<- corr(colbind(totalsData$CONTSnowFreeSY,totalsData$`Active Layer`))
+ # }
+  
+#Looking at individual locations - FULL Snow Year
   fullSnowFreeSnowYearInd <- totalsData$FULLSnowFreeSY<300 #& 100<totalsData$FULLSnowFreeSY[1:42,1]
   for (i in 1:42)
   {
-    c <- c(i,i+42,i+(2*42), i+(3*42),i+(4*42),i+(5*42),i+(6*42),i+(7*42),
+    locData <- c(i,i+42,i+(2*42), i+(3*42),i+(4*42),i+(5*42),i+(6*42),i+(7*42),
            i+(8*42),i+(9*42),i+(10*42),i+(11*42),i+(12*42),i+(13*42),i+(14*42))
     #a <- 1+(42*(i-1))
     #b <- 42+(42*(i-1))
     #checking if there is any correlation between years - FULL Snow Year
     par(mar=c(4.1, 4.1, 4.1, 8.1), xpd=TRUE)
-    plot(totalsData[c,6],totalsData[c,3])
+    if (all(is.na(totalsData[locData,3])))
+    {
+      next
+    }
+    plot(totalsData[locData,6],totalsData[locData,3])
     legend('topright', inset=c(-0.2,0),ALDataFrame$SiteName[i], bty='n', cex=.75)
-    fullSnowFreeSYReg <- lm(totalsData[c,3] ~ totalsData[c,6])
-    abline(fullSnowFreeSYReg)
+    #fullSnowFreeSYReg <- lm(totalsData[c,3] ~ totalsData[c,6])
+    #abline(fullSnowFreeSYReg)
     #summary(fullSnowFreeSYReg)
    #show(c)
+    show(i)
   }
