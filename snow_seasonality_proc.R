@@ -1,4 +1,18 @@
-#Snow Seasonality Descriptors
+#This script contains multiple dataframes which will be used to analyze snow seasonality descriptors
+#and permafrost data in the file snow_seasonality_analysis.R.
+#In the first "section" unstacks a raster stack and places selected information into dataframes.
+#The second "section finds the active layer data points inside of the North Slope shape file.
+#The third "section" places the previously grabbed data in the locations of the active layer data points.
+#In the fourth "section" we find the snow free period using two different methods
+# (calendar year and snow year).
+#In the fifth "section", we merged the significant data frames (see totalsData).
+#In the sixth "section", we went over to the other file (snow_seasonality_analysis.R) and started
+# some plotting.
+#In the seventh "section" we began looking at the freeze and melt periods as well as looked at if
+# the "red" data (see original pdf) and if the 1000 method was significant.
+
+
+#Snow Duration and Active Layer Depth Processing
 #Earth Lab - Project Permafrost
 #By: Ksenia Lepikhina and Jeffery Thompson (mentor)
 #Copy Right
@@ -10,7 +24,7 @@ library(rgeos)
 library(ggplot2)
 library(psych)
 
-#open folder
+#open folder where all files (shape and raster and data) are stored
 setwd("~/Desktop/modis_data/MODISSnowSeasonality")
 dataBaseDir <- c("~/Desktop/")
 lstDir <- paste(dataBaseDir,c("modis_data/MODISSnowSeasonality/"),sep="")
@@ -24,7 +38,7 @@ clip<-function(raster,shape)
   cropped*cells
 }
 
-#in folder, files names are only the ones that end in .tif
+#in folder, filesnames are only the ones that end in .tif
 fileNames <- list.files(pattern = ".tif")
 
 #create data frames
@@ -66,7 +80,7 @@ colnames(lsSnowCont)<-c("2001","2002","2003","2004","2005","2006","2007","2008",
                     "2009","2010","2011","2012","2013","2014","2015","2016")
 
 
-#iterate through all of the files
+#iterate through all of the Snow seasonality files
 for (i in 1:length(fileNames))
 {
   savedFile = file.path('~/Desktop/modis_data/MODISSnowSeasonality/New', fileNames[i]);
@@ -94,10 +108,6 @@ for (i in 1:length(fileNames))
       writeRaster(NS_snow_depth,savedFile, options="INTERLEAVE=BAND", overwrite=TRUE)
   } 
 
-  #label plots
-  labels <- c("first_snow_day", "last_snow_day", "fss_range", "longest_css_first_day", "longest_css_last_day", "longest_css_day_range", "snow_days", "no_snow_days", "css_segment_num", "mflag", "cloud_days", "tot_css_days")
-  names(NS_snow_depth) <- labels[1:12]
-  plot(NS_snow_depth)
   
   #populate data frame
   #first stack layer - first snow day full snow season
@@ -148,12 +158,7 @@ write.csv(lsSnowCont, file = "lsSnowCont.csv")
 #By: Ksenia Lepikhina and Jeffery Thompson (mentor)
 #Copy Right
 
-library(sp)
-library(rgdal)
-library(raster)
-library(rgeos)
-
-#open folder
+#open folder where permafrost data is
 setwd("~/Desktop/modis_data/calm_sites/CALM_SitesData_Cleaned")
 dataBaseDir <- c("~/Desktop/")
 listDir <- paste(dataBaseDir,c("modis_data/calm_sites/CALM_SitesData_Cleaned/"),sep="")
@@ -165,13 +170,11 @@ NS <- readOGR(dsn=path.expand(paste(boundDir, c("LCC_Arctic_Alaska_Yukon.shp"),s
 #Load active layer shape file
 activeIn <- shapefile(paste(listDir,c("CALM_SitesData_Cleaned.shp"),sep=""),stringsAsFactors=FALSE)
 
+#make sure they are in the same coordinate system
 ntSlopeProj <-projection(NS)
 activeAK <- spTransform(activeIn,ntSlopeProj)
 activeAKInd <- !is.na(over(activeAK,as(NS, "SpatialPolygons")))
 
-#Plot the North Slope
-#plot(coordinates(activeAK),type="n")
-#plot(NS,border="blue",add=TRUE)
 
 #Create dataframe that has permafrost data for North Slope
 ALDataFrame = data.frame("SiteCode"=rep(0, 42),"SiteName"=rep(0, 42),"Latitude"=rep(0, 42),"Longitude"=rep(0, 42),
@@ -186,30 +189,26 @@ colnames(ALDataFrame)<-c("SiteCode","SiteName","Latitude","Longitude","1990","19
                          "2007","2008","2009","2010","2011","2012","2013","2014","2015","2016")
 
 #populate dataframe
-
 ALDataFrame[,1:4] <- activeAK@data[activeAKInd,1:4]
 ALDataFrame[,5:31] <- activeAK@data[activeAKInd,7:33]
 
-
-# now plot active layer sites instide and outside alaska 
-points(activeAK[!activeAKInd, ], pch=1, col="gray")
-points(activeAK[activeAKInd, ], pch=16, col="red")
 
 # there are strange, hidden characters in the data. 
 activeAK$F19 <- as.integer(gsub("\xa0", "", activeAK$F19))
 activeAK$test <- as.integer(gsub("<a0>", "", activeAK$F19))
 
+#write out
 setwd("~/Desktop/modis_data/MODISSnowSeasonality/New/dataFrames/")
 write.csv(ALDataFrame, file = "ALData.csv")
 
 
 #-------------------------------------------------------------------------------------------------------------
-#Finds snow extent where active layer point data is
+#Finds snow extent where active layer point data is - extract and populate data frames
 #Earth Lab - Project Permafrost
 #By: Ksenia Lepikhina and Jeffery Thompson (mentor)
 #Copy Right
 
-#first snow day (full) median snow depth at active layer depth locations
+#Create data frames for first snow day (full) median snow depth at active layer depth locations
 fsSnowAtLoc = data.frame("2001"=rep(0, 42), "2002"=rep(0,42), "2003"=rep(0,42), "2004"=rep(0,42),
                          "2005"=rep(0,42), "2006"=rep(0,42), "2007"=rep(0,42), "2008"=rep(0,42),
                          "2009"=rep(0,42), "2010"=rep(0,42), "2011"=rep(0,42), "2012"=rep(0,42),
@@ -220,7 +219,7 @@ colnames(fsSnowAtLoc) <- c("2001", "2002", "2003", "2004",
                            "2013","2014", "2015", "2016")
 
 row.names(fsSnowAtLoc) <-c(activeAK@data$Site_Name[activeAKInd == TRUE])
-#last snow day (full) median snow depth at active layer depth locations
+#Create data frames for last snow day (full) median snow depth at active layer depth locations
 lsSnowAtLoc = data.frame("2001"=rep(0, 42), "2002"=rep(0,42), "2003"=rep(0,42), "2004"=rep(0,42),
                          "2005"=rep(0,42), "2006"=rep(0,42), "2007"=rep(0,42), "2008"=rep(0,42),
                          "2009"=rep(0,42), "2010"=rep(0,42), "2011"=rep(0,42), "2012"=rep(0,42),
@@ -231,7 +230,7 @@ colnames(lsSnowAtLoc) <- c("2001", "2002", "2003", "2004",
                            "2013","2014", "2015", "2016")
 row.names(lsSnowAtLoc) <-c(activeAK@data$Site_Name[activeAKInd == TRUE])
 
-#first snow day (continuous) median snow depth at active layer depth locations
+#Create data frames for first snow day (continuous) median snow depth at active layer depth locations
 fsSnowContAtLoc = data.frame("2001"=rep(0, 42), "2002"=rep(0,42), "2003"=rep(0,42), "2004"=rep(0,42),
                              "2005"=rep(0,42), "2006"=rep(0,42), "2007"=rep(0,42), "2008"=rep(0,42),
                              "2009"=rep(0,42), "2010"=rep(0,42), "2011"=rep(0,42), "2012"=rep(0,42),
@@ -241,7 +240,7 @@ colnames(fsSnowContAtLoc) <- c("2001", "2002", "2003", "2004",
                                "2009", "2010", "2011", "2012",
                                "2013","2014", "2015", "2016")
 row.names(fsSnowContAtLoc) <-c(activeAK@data$Site_Name[activeAKInd == TRUE])
-#last snow day (continuous) median snow depth at active layer depth locations
+#Create data frames for last snow day (continuous) median snow depth at active layer depth locations
 lsSnowContAtLoc = data.frame("2001"=rep(0, 42), "2002"=rep(0,42), "2003"=rep(0,42), "2004"=rep(0,42),
                              "2005"=rep(0,42), "2006"=rep(0,42), "2007"=rep(0,42), "2008"=rep(0,42),
                              "2009"=rep(0,42), "2010"=rep(0,42), "2011"=rep(0,42), "2012"=rep(0,42),
@@ -252,7 +251,7 @@ colnames(lsSnowContAtLoc) <- c("2001", "2002", "2003", "2004",
                                "2013","2014", "2015", "2016")
 row.names(lsSnowContAtLoc) <-c(activeAK@data$Site_Name[activeAKInd == TRUE])
 
-#duration of snow period (continuous) median snow depth at active layer depth locations
+#Create data frames for duration of snow period (continuous) median snow depth at active layer depth locations
 durContSnowPer = data.frame("2001"=rep(0, 42), "2002"=rep(0,42), "2003"=rep(0,42), "2004"=rep(0,42),
                             "2005"=rep(0,42), "2006"=rep(0,42), "2007"=rep(0,42), "2008"=rep(0,42),
                             "2009"=rep(0,42), "2010"=rep(0,42), "2011"=rep(0,42), "2012"=rep(0,42),
@@ -271,32 +270,36 @@ for (i in 1:length(fileNames)){
   savedFile = file.path('~/Desktop/modis_data/MODISSnowSeasonality/New', fileNames[i]);
   NS_snow_depth <- stack(paste(savedFile,sep=""))
   
+  #raster layers
   layer1 <- NS_snow_depth[[1]]
   layer2 <- NS_snow_depth[[2]]
-  layer3 <- NS_snow_depth[[4]] #3
-  layer4 <- NS_snow_depth[[5]] #4
-  layer6 <- NS_snow_depth[[6]] #4
+  layer4 <- NS_snow_depth[[4]]
+  layer5 <- NS_snow_depth[[5]]
+  layer6 <- NS_snow_depth[[6]]
   
+  #if there are 0's set them to NA
   layer1[layer1 == 0] <- NA 
   layer2[layer2 == 0] <- NA
-  layer3[layer3 == 0] <- NA
   layer4[layer4 == 0] <- NA
+  layer5[layer5 == 0] <- NA
   layer6[layer6 == 0] <- NA
   
-
+  #extract snow at active layer locations
   snowAtLocFFS <-extract(layer1,activeAK@coords[activeAKInd,],buffer=buf,fun=median,na.rm=TRUE)
   snowAtLocLFS <-extract(layer2,activeAK@coords[activeAKInd,],buffer=buf,fun=median,na.rm=TRUE)
-  snowAtLocFCS <-extract(layer3,activeAK@coords[activeAKInd,],buffer=buf,fun=median,na.rm=TRUE)
-  snowAtLocLCS <-extract(layer4,activeAK@coords[activeAKInd,],buffer=buf,fun=median,na.rm=TRUE)
+  snowAtLocFCS <-extract(layer4,activeAK@coords[activeAKInd,],buffer=buf,fun=median,na.rm=TRUE)
+  snowAtLocLCS <-extract(layer5,activeAK@coords[activeAKInd,],buffer=buf,fun=median,na.rm=TRUE)
   contSnowPerAtLoc <-extract(layer1,activeAK@coords[activeAKInd,],buffer=buf,fun=median,na.rm=TRUE)
-
-    fsSnowAtLoc[,i] = c(snowAtLocFFS)
-    lsSnowAtLoc[,i] = c(snowAtLocLFS)
-    fsSnowContAtLoc[,i] = c(snowAtLocFCS)
-    lsSnowContAtLoc[,i] = c(snowAtLocLCS)
-    durContSnowPer[,i] = c(contSnowPerAtLoc)
+    
+  #populate dataframes
+  fsSnowAtLoc[,i] = c(snowAtLocFFS)
+  lsSnowAtLoc[,i] = c(snowAtLocLFS)
+  fsSnowContAtLoc[,i] = c(snowAtLocFCS)
+  lsSnowContAtLoc[,i] = c(snowAtLocLCS)
+  durContSnowPer[,i] = c(contSnowPerAtLoc)
 }
 
+#write out
 setwd("~/Desktop/modis_data/MODISSnowSeasonality/New/dataFrames/")
 write.csv(fsSnowAtLoc, file = "fsSnowAtLoc.csv")
 write.csv(lsSnowAtLoc, file = "lsSnowAtLoc.csv")
@@ -354,99 +357,14 @@ colnames(CONTSnowFreeCY) <- c("2002", "2003", "2004",
                               "2013","2014", "2015", "2016")
 row.names(CONTSnowFreeCY) <-c(activeAK@data$Site_Name[activeAKInd == TRUE])
 
-#Snow Year Analysis FULL
-dSFP <- vector("numeric", 42L)
-for (i in 1:16)
-{
-  for (j in 1:42)
-  {
-    k <- 365 -(lsSnowAtLoc[j,i]-fsSnowAtLoc[j,i])
-    dSFP[j] <- k
-  }
-  FULLSnowFreeSY[,i] = c(dSFP)
-}
 
-#Snow Year Analysis CONTINUOUS
-dSFP2 <- vector("numeric", 42L)
-for (i in 1:16)
-{
-  for (j in 1:42)
-  {
-    k <- 365 -(lsSnowContAtLoc[j,i]-fsSnowContAtLoc[j,i])
-    dSFP2[j] <- k
-  }
-  CONTSnowFreeSY[,i] = c(dSFP2)
-}
-
-#Calendar Year Analysis FULL
-dSFP3 <- vector("numeric", 42L)
-for (i in 1:15)
-{
-  for (j in 1:42)
-  {
-    if (is.na(fsSnowAtLoc[j,i+1]) || is.na(lsSnowAtLoc[j,i]))
-    {
-      dSFP3[j] <- NA
-    }
-    else if (fsSnowAtLoc[j,i+1] < 365 && lsSnowAtLoc[j,i] > 365)
-    {
-      k <- fsSnowAtLoc[j,i+1] - (lsSnowAtLoc[j,i] -365)
-      dSFP3[j] <- k
-    }
-    else if (fsSnowAtLoc[j,i+1] < 365 && lsSnowAtLoc[j,i] < 365)
-    {
-      dSFP3[j] <- fsSnowAtLoc[j,i+1] 
-    }
-    else if (fsSnowAtLoc[j,i+1] > 365 && lsSnowAtLoc[j,i] > 365)
-    {
-      k <- 365 - (lsSnowAtLoc[j,i] -365)
-      dSFP3[j] <- k
-    }
-    else if (fsSnowAtLoc[j,i+1] > 365 && lsSnowAtLoc[j,i] < 365)
-    {
-      dSFP3[j] <- 365
-    }
-  }
-  FULLSnowFreeCY[,i] = c(dSFP3)
-}
-
-#Calendar Year Analysis CONTINUOUS
-dSFP4 <- vector("numeric", 42L)
-for (i in 1:15)
-{
-  for (j in 1:42)
-  {
-    if (is.na(fsSnowContAtLoc[j,i+1]) || is.na(lsSnowContAtLoc[j,i]))
-    {
-      dSFP4[j] <- NA
-    }
-    else if (fsSnowContAtLoc[j,i+1] < 365 && lsSnowContAtLoc[j,i] > 365)
-    {
-      k <- fsSnowContAtLoc[j,i+1] - (lsSnowContAtLoc[j,i] -365)
-      dSFP4[j] <- k
-    }
-    else if (fsSnowContAtLoc[j,i+1] < 365 && lsSnowContAtLoc[j,i] < 365)
-    {
-      dSFP4[j] <- fsSnowContAtLoc[j,i+1] 
-    }
-    else if (fsSnowContAtLoc[j,i+1] > 365 && lsSnowContAtLoc[j,i] > 365)
-    {
-      k <- 365 - (lsSnowContAtLoc[j,i] -365)
-      dSFP4[j] <- k
-    }
-    else if (fsSnowAtLoc[j,i+1] > 365 && lsSnowContAtLoc[j,i] < 365)
-    {
-      dSFP4[j] <- 365
-    }
-  }
-  CONTSnowFreeCY[,i] = c(dSFP4)
-}
 #------------------------------------------------------------------------------------
 #Merging the dataframes
 #Earth Lab - Project Permafrost
 #By: Ksenia Lepikhina and Jeffery Thompson (mentor)
 #Copy Right
 
+#new dataframe with all of the data in one
 n <- 630
 totalsData <- data.frame("SiteName"=rep(0,n), "Year"=rep(0,n), "ActiveLayer"=rep(0,n),
                          "CFullSnow"=rep(0,n), "CContSnow"=rep(0,n),
@@ -455,6 +373,7 @@ colnames(totalsData) <- c("SiteName","Year","ActiveLayer","FULLSnowFreeCY", "CON
                           "FULLSnowFreeSY", "CONTSnowFreeSY")
 #row.names(CONTSnowFreeCY) <-c(activeAK@data$Site_Name[activeAKInd == TRUE])
 
+#populate respectively
 for (i in 1:15)
 {
   a <- 1+(42*(i-1))
@@ -482,281 +401,95 @@ totalsData[,3:7][totalsData[,3:7] == 0] <- NA
 #Earth Lab - Project Permafrost
 #By: Ksenia Lepikhina and Jeffery Thompson (mentor)
 #Copy Right
-boxplot(ActiveLayer ~ Year, data=totalsData,main="Active Layer Depths by Year")
-boxplot(CONTSnowFreeSY ~ Year, data=totalsData,main="Continous Snow Free Period - Snow Year")
-boxplot(CONTSnowFreeCY ~ Year, data=totalsData,main="Continous Snow Free Period - Cal. Year")
-boxplot(FULLSnowFreeSY ~ Year, data=totalsData,main="Full Snow Free Period - Snow Year")
-boxplot(FULLSnowFreeCY ~ Year, data=totalsData,main="Full Snow Free Period - Cal. Year")
-
-contSnowFreeSnowYearInd <- totalsData$CONTSnowFreeSY >0
-plot(totalsData[contSnowFreeSnowYearInd,7],totalsData[contSnowFreeSnowYearInd,3],title="Cont. SFP - Snow Year vs ALD")
-contSnowFreeSYReg <- lm(totalsData[contSnowFreeSnowYearInd,3] ~totalsData[contSnowFreeSnowYearInd,7])
-abline(contSnowFreeSYReg)
-
-#contSnowFreeSYReg <- lm(ActiveLayer ~ CONTSnowFreeSY, data=totalsData)
-summary(contSnowFreeSYReg)
-plot(contSnowFreeSYReg)
-
-
-plot(totalsData$CONTSnowFreeSY,totalsData$ActiveLayer)
-abline(contSnowFreeSYReg)
-
-
-#fullSnowFreeSYReg <- lm(ActiveLayer ~ FULLSnowFreeSY, data=totalsData)
-fullSnowFreeSnowYearInd <- totalsData$FULLSnowFreeSY<300 #& 100<totalsData$FULLSnowFreeSY
-
-
-#checking if there is any correlation between years - FULL Snow Year
-par(mar=c(4.1, 4.1, 4.1, 8.1), xpd=TRUE)
-plot(totalsData[fullSnowFreeSnowYearInd,6],totalsData[fullSnowFreeSnowYearInd,3],
-     pch = c(0,1,2,5,6,15,16,17,18,19,20,21,22,23,24),bg = c(
-                                                            "red","red","red","red"))
-legend('topright', inset=c(-0.2,0),names(FULLSnowFreeSY[2:16]), 
-       pch=c(0,1,2,5,6,15,16,17,18,19,20,21,22,23,24), pt.bg=c("red","red","red","red"), bty='n', cex=.75)
-fullSnowFreeSYReg <- lm(totalsData[fullSnowFreeSnowYearInd,3] ~ totalsData[fullSnowFreeSnowYearInd,6])
-abline(fullSnowFreeSYReg)
-summary(fullSnowFreeSYReg)
-
-#Looking at individual years -FULL Snow Year
-  fullSnowFreeSnowYearInd <- totalsData$FULLSnowFreeSY<300 #& 100<totalsData$FULLSnowFreeSY[1:42,1]
-  for (i in 2:16)
-  {
-    a <- 1+(42*(i-2))
-    b <- 42+(42*(i-2))
-    #checking if there is any correlation between years - FULL Snow Year
-    par(mar=c(4.1, 4.1, 4.1, 8.1), xpd=TRUE)
-    plot(totalsData[a:b,6],totalsData[a:b,3])
-    legend('topright', inset=c(-0.2,0),names(FULLSnowFreeSY[i]), bty='n', cex=.75)
-    fullSnowFreeSYReg <- lm(totalsData[a:b,3] ~ totalsData[a:b,6])
-    abline(fullSnowFreeSYReg)
-    #summary(fullSnowFreeSYReg)
-  }
- 
-  
-  #checking if there is any correlation between locations - FULL Snow Year
-  fullSnowFreeSnowYearInd <- totalsData$FULLSnowFreeSY<300 #& 67<totalsData$FULLSnowFreeSY
-  par(mar=c(4.1, 4.1, 4.1, 8.1), xpd=TRUE)
-  myshapes <- c(21,22,23,24)#,21,22,23,24,21,22,23,24,
-                #21,22,23,24,21,22,23,24,21,22,23,24,
-                #21,22,23,24,21,22,23,24,21,22,23,24,
-                #21,22,23,24,21,22)
-  mycolors <- c("red","red","red","red",
-                "green","green","green","green",
-                "orange","orange","orange","orange",
-                "blue","blue","blue","blue",
-                "cyan","cyan","cyan","cyan",
-                "black","black","black","black",
-                "grey","grey","grey","grey",
-                "yellow","yellow","yellow","yellow",
-                "pink","pink","pink","pink",
-                "darkgreen","darkgreen","darkgreen","darkgreen",
-                "white","white")
-  #with(FULLSnowFreeSY,plot(totalsData[fullSnowFreeSnowYearInd,6], totalsData[fullSnowFreeSnowYearInd,3],
-                           #pch=myshapes[row(FULLSnowFreeSY)],bg=mycolors[row(FULLSnowFreeSY)]))
- # for (i in 1:15){
-#    a <- 1+(42*(i-1))
-#    b <- 42+(42*(i-1))
-    # plot(totalsData[fullSnowFreeSnowYearInd,6], totalsData[fullSnowFreeSnowYearInd,3],
-    #      pch=myshapes[row(totalsData)[1:42]],bg=mycolors[row(totalsData)[1:42]])
-  plot(totalsData[fullSnowFreeSnowYearInd,6], totalsData[fullSnowFreeSnowYearInd,3],
-       pch=myshapes,bg=mycolors)
-    legend(185,75, inset=c(-0.1,0),totalsData$SiteName[1:42], 
-           pch= myshapes, pt.bg = mycolors,bty='n', cex=.45, ncol=2)
-    #qplot(totalsData[fullSnowFreeSnowYearInd,6], totalsData[fullSnowFreeSnowYearInd,3], colour = 'color', geom = 'bin2d')
-    #k1<- corr(colbind(totalsData$CONTSnowFreeSY,totalsData$`Active Layer`))
- # }
-  
-#Looking at individual locations - FULL Snow Year
-  fullSnowFreeSnowYearInd <- totalsData$FULLSnowFreeSY<300 #& 100<totalsData$FULLSnowFreeSY[1:42,1]
-  for (i in 1:42)
-  {
-    locData <- c(i,i+42,i+(2*42), i+(3*42),i+(4*42),i+(5*42),i+(6*42),i+(7*42),
-           i+(8*42),i+(9*42),i+(10*42),i+(11*42),i+(12*42),i+(13*42),i+(14*42))
-    #a <- 1+(42*(i-1))
-    #b <- 42+(42*(i-1))
-    #checking if there is any correlation between years - FULL Snow Year
-    par(mar=c(4.1, 4.1, 4.1, 8.1), xpd=TRUE)
-    if (all(is.na(totalsData[locData,3])))
-    {
-      next
-    }
-    plot(totalsData[locData,6],totalsData[locData,3])
-    legend('topright', inset=c(-0.2,0),ALDataFrame$SiteName[i], bty='n', cex=.75)
-    #fullSnowFreeSYReg <- lm(totalsData[c,3] ~ totalsData[c,6])
-    #abline(fullSnowFreeSYReg)
-    #summary(fullSnowFreeSYReg)
-   #show(c)
-    show(i)
-  }
   
   
+#------------------------------------------------------------------------------------
+#Freeze and Melt periods
+#Earth Lab - Project Permafrost
+#By: Ksenia Lepikhina and Jeffery Thompson (mentor)
+#Copy Right
   
-  #------------------------------------------------------------------------------------
-  #Freeze and Melt periods
-  #Earth Lab - Project Permafrost
-  #By: Ksenia Lepikhina and Jeffery Thompson (mentor)
-  #Copy Right
-  
-  #Freeze period - freeze period = start snow - 213
-  CONTFreezeSY = data.frame("2002"=rep(0,42), "2003"=rep(0,42), "2004"=rep(0,42),
-                              "2005"=rep(0,42), "2006"=rep(0,42), "2007"=rep(0,42), "2008"=rep(0,42),
-                              "2009"=rep(0,42), "2010"=rep(0,42), "2011"=rep(0,42), "2012"=rep(0,42),
-                              "2013"=rep(0,42),"2014"=rep(0,42), "2015"=rep(0,42), "2016"=rep(0,42));
-  colnames(CONTFreezeSY) <- c("2002", "2003", "2004",
-                                "2005", "2006", "2007", "2008",
-                                "2009", "2010", "2011", "2012",
-                                "2013","2014", "2015", "2016")
-  row.names(CONTFreezeSY) <-c(activeAK@data$Site_Name[activeAKInd == TRUE])
-  
-  dSFP5 <- vector("numeric", 42L)
-  for (i in 1:15)
-  {
-    for (j in 1:42)
-    {
-      if (is.na(fsSnowContAtLoc[j,i]) || is.na(lsSnowContAtLoc[j,i]))
-      {
-        dSFP5[j] <- NA
-      }
-      else
-      {
-        show(j)
-        show(i)
-        d_freeze <- fsSnowContAtLoc[j,i+1]-213
-        dSFP5[j] <- d_freeze
-        show(d_freeze)
-      }
-    }
-    CONTFreezeSY[,i] = c(dSFP5) 
-  }
-  
-  
-  #Melt period - freeze period = start snow - 213
-  CONTMeltSY = data.frame("2002"=rep(0,42), "2003"=rep(0,42), "2004"=rep(0,42),
+#Freeze period - freeze period = start snow - 213
+CONTFreezeSY = data.frame("2002"=rep(0,42), "2003"=rep(0,42), "2004"=rep(0,42),
                             "2005"=rep(0,42), "2006"=rep(0,42), "2007"=rep(0,42), "2008"=rep(0,42),
                             "2009"=rep(0,42), "2010"=rep(0,42), "2011"=rep(0,42), "2012"=rep(0,42),
                             "2013"=rep(0,42),"2014"=rep(0,42), "2015"=rep(0,42), "2016"=rep(0,42));
-  colnames(CONTMeltSY) <- c("2002", "2003", "2004",
+colnames(CONTFreezeSY) <- c("2002", "2003", "2004",
                               "2005", "2006", "2007", "2008",
                               "2009", "2010", "2011", "2012",
                               "2013","2014", "2015", "2016")
-  row.names(CONTMeltSY) <-c(activeAK@data$Site_Name[activeAKInd == TRUE])
+row.names(CONTFreezeSY) <-c(activeAK@data$Site_Name[activeAKInd == TRUE])
   
-  dSFP6 <- vector("numeric", 42L)
-  for (i in 1:15)
-  {
-    for (j in 1:42)
-    {
-      if (is.na(fsSnowContAtLoc[j,i]) || is.na(lsSnowContAtLoc[j,i]))
-      {
-        dSFP6[j] <- NA
-      }
-      else
-      {
-        d_melt <- 578 - lsSnowContAtLoc[j,i+1]
-        dSFP6[j] <- d_melt
-      }
-    }
-    CONTMeltSY[,i] = c(dSFP6) 
-  }
-  
-  #Combine Active layer depth, freeze period, and melt period into one dataframe
-  m <- 630
-  meltFreezeAL <- data.frame("SiteName"=rep(0,m), "Year"=rep(0,m), "ActiveLayer"=rep(0,m),
-                           "d_Melt"=rep(0,m), "d_Freeze"=rep(0,m),"durationContSnowPer"=rep(0,m));
-  colnames(meltFreezeAL) <- c("SiteName","Year","ActiveLayer","Melt", "Freeze", "durationContSnowPer") 
-  
-  for (i in 1:15)
-  {
-    a <- 1+(42*(i-1))
-    b <- 42+(42*(i-1))
-    #Site Names
-    meltFreezeAL[a:b,1] <- ALDataFrame[1:42,2]
-    #Years
-    meltFreezeAL[a:b,2] <- i+2001
-    #Active Layer Depth
-    meltFreezeAL[a:b,3] <- ALDataFrame[1:42, i+16]
-    #Melt
-    meltFreezeAL[a:b,4] <- CONTMeltSY[1:42,i]
-    #Freeze
-    meltFreezeAL[a:b,5] <- CONTFreezeSY[1:42,i]
-    #durationContSnowPer
-    meltFreezeAL[a:b,6] <- durContSnowPer[1:42,i+1]
-  }
-  meltFreezeAL[,3:6][meltFreezeAL[,3:6] == 0] <- NA
+#Melt period - freeze period = 578 - last snow
+CONTMeltSY = data.frame("2002"=rep(0,42), "2003"=rep(0,42), "2004"=rep(0,42),
+                          "2005"=rep(0,42), "2006"=rep(0,42), "2007"=rep(0,42), "2008"=rep(0,42),
+                          "2009"=rep(0,42), "2010"=rep(0,42), "2011"=rep(0,42), "2012"=rep(0,42),
+                          "2013"=rep(0,42),"2014"=rep(0,42), "2015"=rep(0,42), "2016"=rep(0,42));
+colnames(CONTMeltSY) <- c("2002", "2003", "2004",
+                            "2005", "2006", "2007", "2008",
+                            "2009", "2010", "2011", "2012",
+                            "2013","2014", "2015", "2016")
+row.names(CONTMeltSY) <-c(activeAK@data$Site_Name[activeAKInd == TRUE])
   
   
+#Combine Active layer depth, freeze period, and melt period into one dataframe
+m <- 630
+meltFreezeAL <- data.frame("SiteName"=rep(0,m), "Year"=rep(0,m), "ActiveLayer"=rep(0,m),
+                         "d_Melt"=rep(0,m), "d_Freeze"=rep(0,m),"durationContSnowPer"=rep(0,m));
+colnames(meltFreezeAL) <- c("SiteName","Year","ActiveLayer","Melt", "Freeze", "durationContSnowPer") 
   
-  #checking if there is any correlation between years - AL vs Freeze
-  freeze <- meltFreezeAL$Freeze <150 #& 100<totalsData$FULLSnowFreeSY[1:42,1]
-  par(mar=c(4.1, 4.1, 4.1, 8.1), xpd=TRUE)
-  plot(meltFreezeAL[freeze,5],meltFreezeAL[freeze,3],
-       pch = c(0,1,2,5,6,15,16,17,18,19,20,21,22,23,24),bg = c(
-         "red","red","red","red"))
-  legend('topright', inset=c(-0.2,0),names(FULLSnowFreeSY[2:16]),
-         pch=c(0,1,2,5,6,15,16,17,18,19,20,21,22,23,24), pt.bg=c("red","red","red","red"), bty='n', cex=.75)
-  freezeReg <- lm(meltFreezeAL[freeze,3] ~ (meltFreezeAL[freeze,4]+meltFreezeAL[freeze,5] +meltFreezeAL[freeze,6]))
-  abline(freezeReg)
-  summary(freezeReg) #BEST correation R^2 7.89%
-  
-  
-  #Looking at individual years -AL and melt+freeze
-  #fullSnowFreeSnowYearInd <- totalsData$FULLSnowFreeSY<300 #& 100<totalsData$FULLSnowFreeSY[1:42,1]
-  for (i in 2:16)
-  {
-    a <- 1+(42*(i-2))
-    b <- 42+(42*(i-2))
-    #checking if there is any correlation between years - FULL Snow Year
-    par(mar=c(4.1, 4.1, 4.1, 8.1), xpd=TRUE)
-    plot(meltFreezeAL[a:b,4],meltFreezeAL[a:b,3])
-    legend('topright', inset=c(-0.2,0),names(FULLSnowFreeSY[i]), bty='n', cex=.75)
-    meltFreezeLineIndiv <- lm(meltFreezeAL[a:b,3] ~ meltFreezeAL[a:b,4]+ meltFreezeAL[a:b,5]+durContSnowPer)
-    abline(meltFreezeLineIndiv)
-    summary(meltFreezeLineIndiv)
-  }
-  
-  
-  boxplot(ActiveLayer ~ Year, data=meltFreezeAL,main="Active Layer Depths by Year")
-  boxplot(Melt ~ Year, data=meltFreezeAL,main="Melt - Snow Year")
-  boxplot(Freeze ~ Year, data=meltFreezeAL,main="Freeze - Cal. Year")
-  boxplot(durationContSnowPer ~ Year, data=meltFreezeAL,main="Duration of Cont Snow Per - Snow Year")
-  
-  #Combine Active layer depth, freeze period, and melt period into one dataframe
-  q <- 375
-  temp <- data.frame("SiteName"=rep(0,q), "Year"=rep(0,q), "ActiveLayer"=rep(0,q),
-                             "d_Melt"=rep(0,q), "d_Freeze"=rep(0,q),"durationContSnowPer"=rep(0,q));
-  colnames(temp) <- c("SiteName","Year","ActiveLayer","Melt", "Freeze", "durationContSnowPer") 
-  
-  for (i in 1:15)
-  {
-    a <- 1+(25*(i-1))
-    b <- 25+(25*(i-1))
-    #Site Names
-    temp[a:b,1] <- ALDataFrame[1:25,2]
-    #Years
-    temp[a:b,2] <- i+2001
-    #Active Layer Depth
-    temp[a:b,3] <- ALDataFrame[1:25, i+16]
-    #Melt
-    temp[a:b,4] <- CONTMeltSY[1:25,i]
-    #Freeze
-    temp[a:b,5] <- CONTFreezeSY[1:25,i]
-    #durationContSnowPer
-    temp[a:b,6] <- durContSnowPer[1:25,i+1]
-  }
-  
-  plot(temp[,6], temp[,3])
-  tempReg <- lm(temp[,3] ~ (temp[,6]))
-  abline(tempReg, method="spearman")
-  summary(tempReg)
-  corr.test(temp[3],temp[6], method="spearman")  #NOT a very good correlation
-  
-#1000 method (The red ones in the data using the 1000 method)
-tempvec <- c(1,3,5,7,12,14,17,22) #the position of the 1000 method ones in the temp DF
+#for 2002-2016 populate the meltFreezeAL dataframe
+for (i in 1:15)
+{
+  a <- 1+(42*(i-1))
+  b <- 42+(42*(i-1))
+  #Site Names
+  meltFreezeAL[a:b,1] <- ALDataFrame[1:42,2]
+  #Years
+  meltFreezeAL[a:b,2] <- i+2001
+  #Active Layer Depth
+  meltFreezeAL[a:b,3] <- ALDataFrame[1:42, i+16]
+  #Melt
+  meltFreezeAL[a:b,4] <- CONTMeltSY[1:42,i]
+  #Freeze
+  meltFreezeAL[a:b,5] <- CONTFreezeSY[1:42,i]
+  #durationContSnowPer
+  meltFreezeAL[a:b,6] <- durContSnowPer[1:42,i+1]
+}
+meltFreezeAL[,3:6][meltFreezeAL[,3:6] == 0] <- NA
 
-#new DF with just the 1000
+#Combine RED (look at original data online)
+#Active layer depth, freeze period, and melt period into one dataframe
+q <- 375
+temp <- data.frame("SiteName"=rep(0,q), "Year"=rep(0,q), "ActiveLayer"=rep(0,q),
+                           "d_Melt"=rep(0,q), "d_Freeze"=rep(0,q),"durationContSnowPer"=rep(0,q));
+colnames(temp) <- c("SiteName","Year","ActiveLayer","Melt", "Freeze", "durationContSnowPer") 
+  
+#for 2002-2016 populate Dataframe
+for (i in 1:15)
+{
+  #look only at RED (see original data) data (also see temp for the dataframe)
+  a <- 1+(25*(i-1))
+  b <- 25+(25*(i-1))
+  #Site Names
+  temp[a:b,1] <- ALDataFrame[1:25,2]
+  #Years
+  temp[a:b,2] <- i+2001
+  #Active Layer Depth
+  temp[a:b,3] <- ALDataFrame[1:25, i+16]
+  #Melt
+  temp[a:b,4] <- CONTMeltSY[1:25,i]
+  #Freeze
+  temp[a:b,5] <- CONTFreezeSY[1:25,i]
+  #durationContSnowPer
+  temp[a:b,6] <- durContSnowPer[1:25,i+1]
+}
+#new dataframe looking at the data collected using the 1000 method
 q <- 120
 thousandDF <- data.frame("SiteName"=rep(0,q), "Year"=rep(0,q), "ActiveLayer"=rep(0,q),
-                    "durationContSnowPer"=rep(0,q)); 
+                    "durationContSnowPer"=rep(0,q))
+#1000 method (The red ones in the data using the 1000 method)
+tempvec <- c(1,3,5,7,12,14,17,22) #the position of the 1000 method ones in the temp DF
 
 for (i in 1:15)
 {
@@ -768,9 +501,3 @@ for (i in 1:15)
   thousandDF[a:b,3] <- temp[c, 3]
   thousandDF[a:b,4] <- temp[c,6] 
 }
-plot(thousandDF[,4], thousandDF[,3])
-thousandReg <- lm(thousandDF[,3] ~ (thousandDF[,4]))
-abline(thousandReg, method= "spearman")
-summary(thousandReg)
-corr.test(thousandDF[3],thousandDF[4],method= "spearman") #NOT a very good correlation AT ALL using the 1000 method
-  
