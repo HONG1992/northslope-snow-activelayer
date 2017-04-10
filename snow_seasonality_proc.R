@@ -696,7 +696,7 @@ summary(fullSnowFreeSYReg)
          pch=c(0,1,2,5,6,15,16,17,18,19,20,21,22,23,24), pt.bg=c("red","red","red","red"), bty='n', cex=.75)
   freezeReg <- lm(meltFreezeAL[freeze,3] ~ (meltFreezeAL[freeze,4]+meltFreezeAL[freeze,5] +meltFreezeAL[freeze,6]))
   abline(freezeReg)
-  summary(freezeReg)
+  summary(freezeReg) #BEST correation R^2 7.89%
   
   
   #Looking at individual years -AL and melt+freeze
@@ -748,17 +748,29 @@ summary(fullSnowFreeSYReg)
   tempReg <- lm(temp[,3] ~ (temp[,6]))
   abline(tempReg, method="spearman")
   summary(tempReg)
-  corr.test(temp[3],temp[6], method="spearman") 
+  corr.test(temp[3],temp[6], method="spearman")  #NOT a very good correlation
   
-#1000 method 
-tempvec <- c(1,3,5,7,12,14,17,22)
-#figure out loop
-for (i in 2:14)
+#1000 method (The red ones in the data using the 1000 method)
+tempvec <- c(1,3,5,7,12,14,17,22) #the position of the 1000 method ones in the temp DF
+
+#new DF with just the 1000
+q <- 120
+thousandDF <- data.frame("SiteName"=rep(0,q), "Year"=rep(0,q), "ActiveLayer"=rep(0,q),
+                    "durationContSnowPer"=rep(0,q)); 
+
+for (i in 1:15)
 {
-  plot(temp[tempvec,6], temp[tempvec,3])
-  tempReg <- lm(temp[tempvec,3] ~ (temp[tempvec,6]))
-  abline(tempReg, method="spearman")
-  summary(tempReg)
-  corr.test(temp[tempvec,3],temp[tempvec,6], method="spearman") 
+  a <- 1+(8*(i-1))
+  b <- 8+(8*(i-1))
+  c<- tempvec+(25*i-25)
+  thousandDF[a:b,1] <- temp[c,1]
+  thousandDF[a:b,2] <- i+2001
+  thousandDF[a:b,3] <- temp[c, 3]
+  thousandDF[a:b,4] <- temp[c,6] 
 }
+plot(thousandDF[,4], thousandDF[,3])
+thousandReg <- lm(thousandDF[,3] ~ (thousandDF[,4]))
+abline(thousandReg, method= "spearman")
+summary(thousandReg)
+corr.test(thousandDF[3],thousandDF[4],method= "spearman") #NOT a very good correlation AT ALL using the 1000 method
   
