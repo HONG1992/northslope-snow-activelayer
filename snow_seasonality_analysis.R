@@ -157,10 +157,12 @@ library(tidyr)
     boxplot(FULLSnowFreeCY ~ Year, data=totalsData,main="Full Snow Free Period - Cal. Year")
 
   #Active layer vs Continuous Snow Free Period (snow year)
-    contSnowFreeSnowYearInd <- totalsData$CONTSnowFreeSY >0
-    plot(totalsData[contSnowFreeSnowYearInd,7],totalsData[contSnowFreeSnowYearInd,3],main="Cont. SFP - Snow Year vs ALD")
+    
+    contSnowFreeSnowYearInd <- totalsData$CONTSnowFreeSY >0 & totalsData$CONTSnowFreeSY <250
+    plot(totalsData[contSnowFreeSnowYearInd,7],totalsData[contSnowFreeSnowYearInd,3],main="Continuous Snow Free Period (Snow Year) vs Active Layer Depth", xlab = "Continuous Snow Free Period in days (Snow Year)", ylab = "Active Layer Depth (cm)")
     contSnowFreeSYReg <- lm(totalsData[contSnowFreeSnowYearInd,3] ~totalsData[contSnowFreeSnowYearInd,7])
     abline(contSnowFreeSYReg)
+    summary(contSnowFreeSYReg)
 
 #same as above but with more stats
     contSnowFreeSYReg <- lm(ActiveLayer ~ CONTSnowFreeSY, data=totalsData)
@@ -173,10 +175,11 @@ library(tidyr)
 
 
 #checking if there is any correlation between years - FULL Snow Year
+    fullSnowFreeSnowYearInd <- totalsData$FULLSnowFreeSY<300
     par(mar=c(4.1, 4.1, 4.1, 8.1), xpd=TRUE) #sets border size
     plot(totalsData[fullSnowFreeSnowYearInd,6],totalsData[fullSnowFreeSnowYearInd,3],
          pch = c(0,1,2,5,6,15,16,17,18,19,20,21,22,23,24),bg = c(
-           "red","red","red","red"), main = "Full Snow Year, AL Depth")
+           "red","red","red","red"), main = "Full Snow Year, AL Depth", xlab = "Full Snow Free Period in days (Snow Year)", ylab = "Active Layer Depth (cm)")
     legend('topright', inset=c(-0.2,0),names(FULLSnowFreeSY[2:16]), 
            pch=c(0,1,2,5,6,15,16,17,18,19,20,21,22,23,24), pt.bg=c("red","red","red","red"), bty='n', cex=.75)
     fullSnowFreeSYReg <- lm(totalsData[fullSnowFreeSnowYearInd,3] ~ totalsData[fullSnowFreeSnowYearInd,6])
@@ -235,7 +238,7 @@ library(tidyr)
       {
         next
       }
-      plot(totalsData[locData,6],totalsData[locData,3])
+      plot(totalsData[locData,6],totalsData[locData,3], main = "Individual Locations", xlab = "Full Snow Free Period (Snow Year)", ylab = "Active Layer Depth" )
       legend('topright', inset=c(-0.2,0),ALDataFrame$SiteName[i], bty='n', cex=.75)
       fullSnowFreeSYReg <- lm(totalsData[locData,3] ~ totalsData[locData,6])
       abline(fullSnowFreeSYReg)
@@ -248,14 +251,20 @@ library(tidyr)
     #   a <-1+(10*(i-1))
     #   b <-10+(10*(i-1)) 
     # }
-    plot(mostCompleteAL[,2], mostCompleteAL[,3], main = "Active Layer Depth
-         vs Years", xlab = "Years(1996-2016)", ylab = "Active Layer Depth (cm)")
+    
+    pred <- pre.frame$mostCompleteAL...2.
+    
     completeALReg <- lm(mostCompleteAL[,3] ~ mostCompleteAL[,2])
-    abline(completeALReg)
+    pre.frame <- data.frame(mostCompleteAL[,2])
+    pp<- predict(completeALReg, int = "p", newdata = pre.frame)
+    pc<- predict(completeALReg, int = "c", newdata = pre.frame)
+    plot(mostCompleteAL[,2], mostCompleteAL[,3], main = "Active Layer Depth
+         vs Years", xlab = "Years(1996-2016)", ylab = "Active Layer Depth (cm)", 
+         ylim=range(mostCompleteAL[,3], pp, na.rm = T))
+    #abline(completeALReg)
+    matlines(pred, pc, lty = c(1,2,2), col = "blue") #confidence interval
+    matlines(pred,pp, lty = c(1,3,3), col = "black") #prediction interval
     show(summary(completeALReg))
-    cint <- confint(completeALReg)
-    abline(cint[,1])
-    abline(cint[,2])
     
 #------------------------------------------------------------------------------------
 #Freeze and Melt periods
@@ -310,7 +319,7 @@ library(tidyr)
     par(mar=c(4.1, 4.1, 4.1, 8.1), xpd=TRUE)
     plot(meltFreezeAL[freeze,5],meltFreezeAL[freeze,3],
          pch = c(0,1,2,5,6,15,16,17,18,19,20,21,22,23,24),bg = c(
-           "red","red","red","red"), main = "AL vs Freeze")
+           "red","red","red","red"), main = "AL vs Freeze", xlab = "Duration of 'Freeze' Period", ylab = "Active Layer Depth (cm)")
     legend('topright', inset=c(-0.2,0),names(FULLSnowFreeSY[2:16]),
            pch=c(0,1,2,5,6,15,16,17,18,19,20,21,22,23,24), pt.bg=c("red","red","red","red"), bty='n', cex=.75)
     freezeReg <- lm(meltFreezeAL[freeze,3] ~ (meltFreezeAL[freeze,4]+meltFreezeAL[freeze,5] +meltFreezeAL[freeze,6]))
@@ -349,7 +358,7 @@ library(tidyr)
       {
         if (all(!is.na(meltFreezeAL[locData2,3])))
         {
-        plot(meltFreezeAL[locData2,6],meltFreezeAL[locData2,3])
+        plot(meltFreezeAL[locData2,6],meltFreezeAL[locData2,3], xlab())
         legend('topright', inset=c(-0.2,0),meltFreezeAL$SiteName[i], bty='n', cex=.75)
         meltFreezeLineIndiv <- lm(meltFreezeAL[locData2,3] ~ meltFreezeAL[locData2,6])#meltFreezeAL[a:b,4]+ meltFreezeAL[a:b,5]+meltFreezeAL[a:b,6])
         abline(meltFreezeLineIndiv)
@@ -371,14 +380,17 @@ library(tidyr)
     boxplot(durationContSnowPer ~ Year, data=meltFreezeAL,main="Duration of Cont Snow Per - Year")
 
 #look only at RED (see original data) data (*also see temp for the dataframe); temp = red coloring
-    plot(temp[,6], temp[,3])
+    plot(temp[,6], temp[,3], main = "ActiveLayer vs Duration of Continuous
+         Snow Period", xlab = "Duration of Continuous Snow Period", ylab = "Active Layer Depth")
     tempReg <- lm(temp[,3] ~ (temp[,6]))
     abline(tempReg, method="spearman")
     summary(tempReg)
     corr.test(temp[3],temp[6], method="spearman")  #NOT a very good correlation
 
 #1000 method (The red ones in the data using the 1000 method)
-    plot(thousandDF[,4], thousandDF[,3])
+    plot(thousandDF[,4], thousandDF[,3], main = "1000x1000m grid:
+          Active Layer Depth vs Duration of Continuous Snow Period", xlab = 
+           "Duration of Continuous Snow Period", ylab = "Active Layer Depth")
     thousandReg <- lm(thousandDF[,3] ~ (thousandDF[,4]))
     abline(thousandReg, method= "spearman")
     summary(thousandReg)
@@ -403,7 +415,7 @@ ALDataFrame %>%
   gather(year, value, -SiteCode, -SiteName, -Latitude, -Longitude) %>%
   ggplot(aes(as.numeric(year), value, color = SiteName)) + 
   geom_line() +
-  labs(title = "Active Layer Temporal")
+  labs(title = "Active Layer Spatial")
 
 #layer 7 temporal
 numSDAtLoc %>%
