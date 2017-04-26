@@ -248,6 +248,8 @@ library(tidyr)
     #   a <-1+(10*(i-1))
     #   b <-10+(10*(i-1)) 
     # }
+    plot(mostCompleteAL[,2], mostCompleteAL[,3], main = "Active Layer Depth
+         vs Years", xlab = "Years(1996-2016)", ylab = "Active Layer Depth (cm)")
     completeALReg <- lm(mostCompleteAL[,3] ~ mostCompleteAL[,2])
     abline(completeALReg)
     show(summary(completeALReg))
@@ -255,8 +257,6 @@ library(tidyr)
     abline(cint[,1])
     abline(cint[,2])
     
-    plot(mostCompleteAL[,2], mostCompleteAL[,3], main = "Active Layer Depth
-         vs Years", xlab = "Years(1996-2016)", ylab = "Active Layer Depth (cm)")
 #------------------------------------------------------------------------------------
 #Freeze and Melt periods
     dSFP5 <- vector("numeric", 42L) #new vector
