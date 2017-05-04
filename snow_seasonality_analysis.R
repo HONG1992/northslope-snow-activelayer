@@ -265,6 +265,8 @@ library(tidyr)
     matlines(pred, pc, lty = c(1,2,2), col = "blue") #confidence interval
     matlines(pred,pp, lty = c(1,3,3), col = "black") #prediction interval
     show(summary(completeALReg))
+    intcp <- coef(completeALReg)[1] 
+    slp <-  coef(completeALReg)[2] 
     
 #------------------------------------------------------------------------------------
 #Freeze and Melt periods
